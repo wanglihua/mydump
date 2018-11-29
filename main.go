@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/kardianos/service"
 )
@@ -40,6 +41,13 @@ func (srv *services) Stop(s service.Service) error {
 }
 
 func main() {
+
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(dir)
+
 	File, err := os.Create("http-server.log")
 	if err != nil {
 		File = os.Stdout
@@ -110,4 +118,4 @@ func main() {
 
 https://ini.unknwon.io/docs/intro/getting_started
 
- */
+*/
