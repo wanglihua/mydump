@@ -1,0 +1,5 @@
+mysqldump --user=root --password=root erp > d:\erp.sql
+
+mysqldump --user=root --password=root --databases erp > d:\erp.sql
+
+mysql --user=root --password=root < d:\erp.sql
