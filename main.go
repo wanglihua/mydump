@@ -64,13 +64,13 @@ func main() {
 		log.Fatal("ini file not exist!")
 	}
 
-	File, err := os.Create("mydump.log")
+	logFile, err := os.Create("mydump.log")
 	if err != nil {
-		File = os.Stdout
+		logFile = os.Stdout
 	}
-	defer File.Close()
+	defer logFile.Close()
 
-	log.SetOutput(File)
+	log.SetOutput(logFile)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, r.URL.Path)
