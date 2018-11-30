@@ -60,6 +60,10 @@ func main() {
 		iniFileFullName = goPath + string(os.PathSeparator) + "mydump" + string(os.PathSeparator) + "src" + string(os.PathSeparator) + iniFileName
 	}
 
+	if !PathExists(iniFileFullName) {
+		log.Fatal("ini file not exist!")
+	}
+
 	File, err := os.Create("mydump.log")
 	if err != nil {
 		File = os.Stdout
