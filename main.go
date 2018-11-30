@@ -42,13 +42,25 @@ func (srv *services) Stop(s service.Service) error {
 
 func main() {
 
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	exeFileName, err := os.Executable()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(dir)
 
-	File, err := os.Create("http-server.log")
+	workDir, err := filepath.Abs(filepath.Dir(exeFileName))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var iniFileName = "mydump.ini"
+	var iniFileFullName = workDir + string(os.PathSeparator) + iniFileName
+
+	if !PathExists(iniFileFullName) {
+		var goPath = os.Getenv("GOPATH")
+		iniFileFullName = goPath + string(os.PathSeparator) + "mydump" + string(os.PathSeparator) + "src" + string(os.PathSeparator) + iniFileName
+	}
+
+	File, err := os.Create("mydump.log")
 	if err != nil {
 		File = os.Stdout
 	}
