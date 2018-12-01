@@ -1,19 +1,16 @@
 package main
 
 import (
-	"archive/zip"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"github.com/kardianos/service"
+	"github.com/robfig/cron"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-
-	"github.com/kardianos/service"
-	"github.com/robfig/cron"
 )
 
 type services struct {
@@ -98,12 +95,12 @@ func main1() {
 	var iniFileName = "mydump.ini"
 	var iniFileFullName = workDir + string(os.PathSeparator) + iniFileName
 
-	if !PathExists(iniFileFullName) {
+	if !pathExists(iniFileFullName) {
 		var goPath = os.Getenv("GOPATH")
 		iniFileFullName = goPath + string(os.PathSeparator) + "src" + string(os.PathSeparator) + "mydump" + string(os.PathSeparator) + iniFileName
 	}
 
-	if !PathExists(iniFileFullName) {
+	if !pathExists(iniFileFullName) {
 		log.Fatal("mydump.ini file not exist!")
 	}
 
@@ -165,42 +162,6 @@ func main1() {
 	}
 }
 
-func dumpDatabase() { // cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root", "--password=root", "--databases", "eems", ">", "d:\\eems.sql")
-	// cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root --password=root --databases eems > d:\\eems.sql")
-	cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root", "--password=root", "--databases", "eems")
-	stdout, _ := cmd.StdoutPipe()
-
-	err := cmd.Start()
-
-	zipFile, err := os.Create("d:\\eems.zip")
-	defer zipFile.Close()
-
-	var zipWriter = zip.NewWriter(zipFile)
-	defer zipWriter.Close()
-
-	fileWriter, err := zipWriter.Create("eems.sql")
-
-	bytes, err := ioutil.ReadAll(stdout)
-
-	_, err = fileWriter.Write(bytes)
-
-	stdout.Close()
-
-	if err := cmd.Wait(); err != nil {
-		fmt.Println("Execute failed when Wait:" + err.Error())
-		return
-	}
-
-	if err != nil {
-		fmt.Println("Execute 'mysqldump' Command failed: " + err.Error())
-		return
-	}
-}
-
-func deleteRedundantFiles() {
-	files, _ := filepath.Glob("d:\\database_backup\\eems_*.zip")
-	fmt.Println(files) // contains a list of all files in the current directory
-}
 
 /*
 
