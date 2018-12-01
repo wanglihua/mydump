@@ -32,7 +32,7 @@ func (srv *services) Start(s service.Service) error {
 	go srv.srv.Serve(lis)
 
 	c := cron.New()
-	spec := "0 0,12 * * ? "
+	spec := "0 0,12 * * ?"
 	c.AddFunc(spec, func() {
 		// mysqldump --user=root --password=root --databases erp > d:\erp.sql
 		cmd := exec.Command("mysqldump", "--user=root --password=root --databases eems > d:\\eems.sql")
