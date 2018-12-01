@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/go-ini/ini"
 	"github.com/kardianos/service"
 	"github.com/robfig/cron"
 	"log"
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 )
 
@@ -31,32 +31,14 @@ func (srv *services) Start(s service.Service) error {
 
 	go srv.srv.Serve(lis)
 
-	c := cron.New()
-	spec := "0 0,12 * * ?"
-	c.AddFunc(spec, func() {
-		// mysqldump --user=root --password=root --databases erp > d:\erp.sql
-		cmd := exec.Command("mysqldump", "--user=root --password=root --databases eems > d:\\eems.sql")
-
-		err := cmd.Run()
-		if err != nil {
-			log.Println("Execute 'mysqldump' Command failed: " + err.Error())
-			return
-		}
+	var cronObject = cron.New()
+	var cronSpec = iniFile.Section("").Key("cron").String()
+	cronObject.AddFunc(cronSpec, func() {
+		dumpDatabase()
+		deleteRedundantFiles()
 	})
 
-	c.AddFunc("@every 10s", func() {
-		fmt.Println("cron running:")
-
-		cmd := exec.Command("mysqldump", "--user=root --password=root --databases eems > d:\\eems.sql")
-
-		err := cmd.Run()
-		if err != nil {
-			log.Println("Execute 'mysqldump' Command failed: " + err.Error())
-			return
-		}
-	})
-
-	go c.Start()
+	go cronObject.Start()
 
 	return nil
 }
@@ -68,11 +50,15 @@ func (srv *services) Stop(s service.Service) error {
 	return srv.srv.Shutdown(context.Background())
 }
 
+/*
 func main() {
 	deleteRedundantFiles()
 }
+*/
 
-func main1() {
+var iniFile *ini.File
+
+func main() {
 	// 日志的设置，放在程序最开始
 	logFile, err := os.Create("mydump.log")
 	if err != nil {
@@ -103,6 +89,8 @@ func main1() {
 	if !pathExists(iniFileFullName) {
 		log.Fatal("mydump.ini file not exist!")
 	}
+
+	iniFile, err = ini.Load(iniFileFullName)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, r.URL.Path)
@@ -161,7 +149,6 @@ func main1() {
 		log.Fatalf("Run programe error:%s\n", err.Error())
 	}
 }
-
 
 /*
 

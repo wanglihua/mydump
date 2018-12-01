@@ -6,36 +6,45 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
+	"time"
 )
 
-func dumpDatabase() { // cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root", "--password=root", "--databases", "eems", ">", "d:\\eems.sql")
-	// cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root --password=root --databases eems > d:\\eems.sql")
-	cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root", "--password=root", "--databases", "eems")
-	stdout, _ := cmd.StdoutPipe()
+func dumpDatabase() {
+	var mysqldumpCmd = iniFile.Section("").Key("mysqldump").String()
+	var user = iniFile.Section("").Key("user").String()
+	var password = iniFile.Section("").Key("password").String()
+	var backupDir = iniFile.Section("").Key("backupDir").String()
+	var databaseNameList = strings.Split(iniFile.Section("").Key("databases").String(), ",")
 
-	err := cmd.Start()
+	for _, databaseName := range databaseNameList {
+		cmd := exec.Command(mysqldumpCmd, "--user="+user, "--password="+password, "--databases", databaseName)
+		stdout, _ := cmd.StdoutPipe()
 
-	zipFile, err := os.Create("d:\\eems.zip")
-	defer zipFile.Close()
+		err := cmd.Start()
 
-	var zipWriter = zip.NewWriter(zipFile)
-	defer zipWriter.Close()
+		zipFile, err := os.Create(backupDir + string(os.PathSeparator) + databaseName + "_" + time.Now().Format("20060102150405") + ".zip")
+		defer zipFile.Close()
 
-	fileWriter, err := zipWriter.Create("eems.sql")
+		var zipWriter = zip.NewWriter(zipFile)
+		defer zipWriter.Close()
 
-	bytes, err := ioutil.ReadAll(stdout)
+		fileWriter, err := zipWriter.Create(databaseName + ".sql")
 
-	_, err = fileWriter.Write(bytes)
+		bytes, err := ioutil.ReadAll(stdout)
 
-	stdout.Close()
+		_, err = fileWriter.Write(bytes)
 
-	if err := cmd.Wait(); err != nil {
-		fmt.Println("Execute failed when Wait:" + err.Error())
-		return
-	}
+		stdout.Close()
 
-	if err != nil {
-		fmt.Println("Execute 'mysqldump' Command failed: " + err.Error())
-		return
+		if err := cmd.Wait(); err != nil {
+			fmt.Println("Execute failed when Wait:" + err.Error())
+			return
+		}
+
+		if err != nil {
+			fmt.Println("Execute 'mysqldump' Command failed: " + err.Error())
+			return
+		}
 	}
 }

@@ -1,23 +1,35 @@
 package main
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 func deleteRedundantFiles() {
-	files, _ := filepath.Glob("d:\\database_backup\\eems_*.zip")
 
-	var fileNameList = FileNameList(files)
-	sort.Sort(sort.Reverse(fileNameList))
+	var backupDir = iniFile.Section("").Key("backupDir").String()
+	var databaseNameList = strings.Split(iniFile.Section("").Key("databases").String(), ",")
+	fileCountKeep, err := iniFile.Section("").Key("fileCountKeep").Int()
+	if err != nil {
+		log.Fatal("fileCountKeep config missing!")
+	}
 
-	files = []string(fileNameList)
+	for _, databaseName := range databaseNameList {
+		files, _ := filepath.Glob(backupDir + string(os.PathSeparator) + databaseName + "_*.zip")
 
-	if len(files) > 6 {
-		var fileListToDelete = files[6:]
-		for _, fileToDelete := range fileListToDelete {
-			os.Remove(fileToDelete)
+		var fileNameList = FileNameList(files)
+		sort.Sort(sort.Reverse(fileNameList))
+
+		files = []string(fileNameList)
+
+		if len(files) > fileCountKeep {
+			var fileListToDelete = files[6:]
+			for _, fileToDelete := range fileListToDelete {
+				os.Remove(fileToDelete)
+			}
 		}
 	}
 }
