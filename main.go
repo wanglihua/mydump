@@ -72,50 +72,7 @@ func (srv *services) Stop(s service.Service) error {
 }
 
 func main() {
-	// cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root", "--password=root", "--databases", "eems", ">", "d:\\eems.sql")
-	// cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root --password=root --databases eems > d:\\eems.sql")
-	cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root", "--password=root", "--databases", "eems")
-	stdout, _ := cmd.StdoutPipe()
-
-	err := cmd.Start()
-
-	zipFile, err := os.Create("d:\\eems.zip")
-	defer zipFile.Close()
-
-	var zipWriter = zip.NewWriter(zipFile)
-	defer zipWriter.Close()
-
-	fileWriter, err := zipWriter.Create("eems.sql")
-
-	bytes, err := ioutil.ReadAll(stdout)
-
-	_, err = fileWriter.Write(bytes)
-
-	/*
-	var buffer = make([]byte, 1024)
-
-	for {
-		n, err := stdout.Read(buffer)
-
-		if n == 0 || err == io.EOF {
-			break
-		}
-
-		fileWriter.Write(buffer)
-	}
-	*/
-
-	stdout.Close()
-
-	if err := cmd.Wait(); err != nil {
-		fmt.Println("Execute failed when Wait:" + err.Error())
-		return
-	}
-
-	if err != nil {
-		fmt.Println("Execute 'mysqldump' Command failed: " + err.Error())
-		return
-	}
+	deleteRedundantFiles()
 }
 
 func main1() {
@@ -206,6 +163,43 @@ func main1() {
 	if err != nil {
 		log.Fatalf("Run programe error:%s\n", err.Error())
 	}
+}
+
+func dumpDatabase() { // cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root", "--password=root", "--databases", "eems", ">", "d:\\eems.sql")
+	// cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root --password=root --databases eems > d:\\eems.sql")
+	cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root", "--password=root", "--databases", "eems")
+	stdout, _ := cmd.StdoutPipe()
+
+	err := cmd.Start()
+
+	zipFile, err := os.Create("d:\\eems.zip")
+	defer zipFile.Close()
+
+	var zipWriter = zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+	fileWriter, err := zipWriter.Create("eems.sql")
+
+	bytes, err := ioutil.ReadAll(stdout)
+
+	_, err = fileWriter.Write(bytes)
+
+	stdout.Close()
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Execute failed when Wait:" + err.Error())
+		return
+	}
+
+	if err != nil {
+		fmt.Println("Execute 'mysqldump' Command failed: " + err.Error())
+		return
+	}
+}
+
+func deleteRedundantFiles() {
+	files, _ := filepath.Glob("d:\\database_backup\\eems_*.zip")
+	fmt.Println(files) // contains a list of all files in the current directory
 }
 
 /*
