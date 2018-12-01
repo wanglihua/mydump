@@ -1,15 +1,19 @@
 package main
 
 import (
+	"archive/zip"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/kardianos/service"
+	"github.com/robfig/cron"
 )
 
 type services struct {
@@ -20,7 +24,7 @@ type services struct {
 
 func (srv *services) Start(s service.Service) error {
 	if srv.log != nil {
-		srv.log.Info("Start run http server")
+		srv.log.Info("Start run mydump")
 	}
 
 	lis, err := net.Listen("tcp", ":3308")
@@ -30,17 +34,99 @@ func (srv *services) Start(s service.Service) error {
 
 	go srv.srv.Serve(lis)
 
+	c := cron.New()
+	spec := "0 0,12 * * ? "
+	c.AddFunc(spec, func() {
+		// mysqldump --user=root --password=root --databases erp > d:\erp.sql
+		cmd := exec.Command("mysqldump", "--user=root --password=root --databases eems > d:\\eems.sql")
+
+		err := cmd.Run()
+		if err != nil {
+			log.Println("Execute 'mysqldump' Command failed: " + err.Error())
+			return
+		}
+	})
+
+	c.AddFunc("@every 10s", func() {
+		fmt.Println("cron running:")
+
+		cmd := exec.Command("mysqldump", "--user=root --password=root --databases eems > d:\\eems.sql")
+
+		err := cmd.Run()
+		if err != nil {
+			log.Println("Execute 'mysqldump' Command failed: " + err.Error())
+			return
+		}
+	})
+
+	go c.Start()
+
 	return nil
 }
 
 func (srv *services) Stop(s service.Service) error {
 	if srv.log != nil {
-		srv.log.Info("Start stop http server")
+		srv.log.Info("Start stop mydump")
 	}
 	return srv.srv.Shutdown(context.Background())
 }
 
 func main() {
+	// cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root", "--password=root", "--databases", "eems", ">", "d:\\eems.sql")
+	// cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root --password=root --databases eems > d:\\eems.sql")
+	cmd := exec.Command("c:\\mysql\\bin\\mysqldump", "--user=root", "--password=root", "--databases", "eems")
+	stdout, _ := cmd.StdoutPipe()
+
+	err := cmd.Start()
+
+	zipFile, err := os.Create("d:\\eems.zip")
+	defer zipFile.Close()
+
+	var zipWriter = zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+	fileWriter, err := zipWriter.Create("eems.sql")
+
+	bytes, err := ioutil.ReadAll(stdout)
+
+	_, err = fileWriter.Write(bytes)
+
+	/*
+	var buffer = make([]byte, 1024)
+
+	for {
+		n, err := stdout.Read(buffer)
+
+		if n == 0 || err == io.EOF {
+			break
+		}
+
+		fileWriter.Write(buffer)
+	}
+	*/
+
+	stdout.Close()
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Execute failed when Wait:" + err.Error())
+		return
+	}
+
+	if err != nil {
+		fmt.Println("Execute 'mysqldump' Command failed: " + err.Error())
+		return
+	}
+}
+
+func main1() {
+	// 日志的设置，放在程序最开始
+	logFile, err := os.Create("mydump.log")
+	if err != nil {
+		logFile = os.Stdout
+	}
+	defer logFile.Close()
+
+	log.SetOutput(logFile)
 
 	exeFileName, err := os.Executable()
 	if err != nil {
@@ -57,20 +143,12 @@ func main() {
 
 	if !PathExists(iniFileFullName) {
 		var goPath = os.Getenv("GOPATH")
-		iniFileFullName = goPath + string(os.PathSeparator) + "mydump" + string(os.PathSeparator) + "src" + string(os.PathSeparator) + iniFileName
+		iniFileFullName = goPath + string(os.PathSeparator) + "src" + string(os.PathSeparator) + "mydump" + string(os.PathSeparator) + iniFileName
 	}
 
 	if !PathExists(iniFileFullName) {
-		log.Fatal("ini file not exist!")
+		log.Fatal("mydump.ini file not exist!")
 	}
-
-	logFile, err := os.Create("mydump.log")
-	if err != nil {
-		logFile = os.Stdout
-	}
-	defer logFile.Close()
-
-	log.SetOutput(logFile)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, r.URL.Path)
