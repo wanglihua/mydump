@@ -30,7 +30,7 @@ func (srv *services) Start(s service.Service) error {
 
 	go srv.srv.Serve(lis)
 
-	var cronObject = cron.New()
+	cronObject = cron.New()
 	var cronSpec = iniFile.Section("").Key("cron").String()
 	cronObject.AddFunc(cronSpec, func() {
 		dumpDatabase()
@@ -56,6 +56,7 @@ func main() {
 */
 
 var iniFile *ini.File
+var cronObject *cron.Cron = nil
 
 func main() {
 	// 日志的设置，放在程序最开始
