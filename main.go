@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-ini/ini"
 	"github.com/kardianos/service"
 	"github.com/robfig/cron"
@@ -92,9 +91,7 @@ func main() {
 
 	iniFile, err = ini.Load(iniFileFullName)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, r.URL.Path)
-	})
+	http.HandleFunc("/", displayJobStatus)
 
 	var s = &services{srv: &http.Server{Handler: http.DefaultServeMux}, cfg: &service.Config{
 		Name:        "mydump",
