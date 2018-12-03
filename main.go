@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-ini/ini"
 	"github.com/kardianos/service"
 	"github.com/robfig/cron"
@@ -49,12 +50,6 @@ func (srv *services) Stop(s service.Service) error {
 	return srv.srv.Shutdown(context.Background())
 }
 
-/*
-func main() {
-	deleteRedundantFiles()
-}
-*/
-
 var iniFile *ini.File
 var cronObject *cron.Cron = nil
 
@@ -91,6 +86,9 @@ func main() {
 	}
 
 	iniFile, err = ini.Load(iniFileFullName)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	http.HandleFunc("/", displayJobStatus)
 
@@ -113,12 +111,16 @@ func main() {
 
 	if len(os.Args) != 1 && len(os.Args) != 3 {
 		// 参数格式不对
+		fmt.Println("启动参数不对！")
+		log.Fatal("启动参数不对！")
 		return
 	}
 
 	if len(os.Args) == 3 {
 		if os.Args[1] != "service" {
 			// 参数格式不对
+			fmt.Println("启动参数不对！")
+			log.Fatal("启动参数不对！")
 			return
 		}
 
