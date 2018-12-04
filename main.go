@@ -52,6 +52,7 @@ func (srv *services) Stop(s service.Service) error {
 
 var iniFile *ini.File
 var cronObject *cron.Cron = nil
+var workDir = ""
 
 func main() {
 	// 日志的设置，放在程序最开始
@@ -149,9 +150,3 @@ func main() {
 		log.Fatalf("Run programe error:%s\n", err.Error())
 	}
 }
-
-/*
-
-https://ini.unknwon.io/docs/intro/getting_started
-
-*/
