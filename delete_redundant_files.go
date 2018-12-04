@@ -13,7 +13,7 @@ func deleteRedundantFiles() {
 	var databaseNameList = strings.Split(iniFile.Section("").Key("databases").String(), ",")
 	fileCountKeep, err := iniFile.Section("").Key("fileCountKeep").Int()
 	if err != nil {
-		log.Fatal("fileCountKeep config missing!")
+		log.Println("fileCountKeep config missing!")
 	}
 
 	for _, databaseName := range databaseNameList {

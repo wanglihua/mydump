@@ -66,12 +66,12 @@ func main() {
 
 	exeFileName, err := os.Executable()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
-	workDir, err := filepath.Abs(filepath.Dir(exeFileName))
+	workDir, err = filepath.Abs(filepath.Dir(exeFileName))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	var iniFileName = "mydump.ini"
@@ -83,12 +83,12 @@ func main() {
 	}
 
 	if !pathExists(iniFileFullName) {
-		log.Fatal("mydump.ini file not exist!")
+		log.Println("mydump.ini file not exist!")
 	}
 
 	iniFile, err = ini.Load(iniFileFullName)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	http.HandleFunc("/", displayJobStatus)
@@ -102,7 +102,7 @@ func main() {
 	sys := service.ChosenSystem()
 	srv, err := sys.New(s, s.cfg)
 	if err != nil {
-		log.Fatalf("Init service error:%s\n", err.Error())
+		log.Printf("Init service error:%s\n", err.Error())
 	}
 
 	s.log, err = srv.SystemLogger(nil)
@@ -113,7 +113,7 @@ func main() {
 	if len(os.Args) != 1 && len(os.Args) != 3 {
 		// 参数格式不对
 		fmt.Println("启动参数不对！")
-		log.Fatal("启动参数不对！")
+		log.Println("启动参数不对！")
 		return
 	}
 
@@ -121,7 +121,7 @@ func main() {
 		if os.Args[1] != "service" {
 			// 参数格式不对
 			fmt.Println("启动参数不对！")
-			log.Fatal("启动参数不对！")
+			log.Println("启动参数不对！")
 			return
 		}
 
@@ -130,12 +130,12 @@ func main() {
 		if serviceOperation == "install" {
 			err := srv.Install()
 			if err != nil {
-				log.Fatalf("Install service error:%s\n", err.Error())
+				log.Printf("Install service error:%s\n", err.Error())
 			}
 		} else if serviceOperation == "uninstall" {
 			err := srv.Uninstall()
 			if err != nil {
-				log.Fatalf("Uninstall service error:%s\n", err.Error())
+				log.Printf("Uninstall service error:%s\n", err.Error())
 			}
 		} else {
 			// 参数格式不对
@@ -147,6 +147,6 @@ func main() {
 	err = srv.Run()
 
 	if err != nil {
-		log.Fatalf("Run programe error:%s\n", err.Error())
+		log.Printf("Run programe error:%s\n", err.Error())
 	}
 }
