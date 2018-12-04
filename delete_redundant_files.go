@@ -9,7 +9,6 @@ import (
 )
 
 func deleteRedundantFiles() {
-
 	var backupDir = iniFile.Section("").Key("backupDir").String()
 	var databaseNameList = strings.Split(iniFile.Section("").Key("databases").String(), ",")
 	fileCountKeep, err := iniFile.Section("").Key("fileCountKeep").Int()
@@ -18,7 +17,7 @@ func deleteRedundantFiles() {
 	}
 
 	for _, databaseName := range databaseNameList {
-		files, _ := filepath.Glob(backupDir + string(os.PathSeparator) + databaseName + "_*.zip")
+		files, _ := filepath.Glob(backupDir + string(os.PathSeparator) + databaseName + "_*.rar")
 
 		var fileNameList = FileNameList(files)
 		sort.Sort(sort.Reverse(fileNameList))
